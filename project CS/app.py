@@ -1,85 +1,59 @@
-
-
 """
-COOKABLE - Recipe Finder Page
-==============================
+COOKABLE - Main Landing Page
+=============================
+This is the main entry point for the Cookable web application.
+It displays the hero section, concept explanation, customer reviews, and about section.
 
-Purpose:
---------
-This page provides an integrated ingredient selection and recipe recommendation experience.
-Users can select their available ingredients and instantly see matching recipe recommendations
-without navigating to a different page.
-
-How it works:
--------------
-1. User selects ingredients from checkboxes with emoji indicators
-2. Selected ingredients are stored in session state
-3. User clicks "Find My Recipes" button to trigger the search
-4. Results appear dynamically on the same page below the ingredient selection
-5. User can modify their selections and search again for updated results
-
-Technical Architecture:
------------------------
-- Session state management for persistent ingredient selection
-- Conditional rendering of results based on search trigger flag
-- Cached ML models for optimal performance
-- Real-time recipe matching using hybrid scoring algorithm
-- Single-page experience with smooth state transitions
+The app uses Streamlit's page navigation to allow users to navigate to the
+Recipe Input page where they can select ingredients.
 """
 
 import streamlit as st
-import os
-import sys
-
-# Add parent directory to path so we can import our logic modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from logic.clustering import load_clusterer
-from logic.recipe_matching import create_matcher
 
 # ========================================
 # PAGE CONFIGURATION
 # ========================================
+# Set the page to use the full browser width instead of Streamlit's default centered layout
+# This gives us more space for our content and makes the UI look more modern
 st.set_page_config(
-    page_title="Recipe Finder - COOKABLE",
+    page_title="COOKABLE - AI Recipe Matcher",
     layout="wide",
-    page_icon="🥗"
+    page_icon="🍳",
+    initial_sidebar_state="collapsed"  # Hide sidebar on landing page
 )
 
 # ========================================
-# CUSTOM CSS FOR CONSISTENCY
+# CUSTOM CSS STYLING
 # ========================================
+# We use custom CSS to create a more polished, professional look
+# This includes large titles, styled boxes, responsive font sizes, and consistent button styling
 st.markdown(
     """
     <style>
+        /* Main title styling - uses clamp() for responsive sizing */
         .big-title {
-            font-size: clamp(36px, 6vw, 64px);
+            font-size: clamp(42px, 8vw, 96px);
             font-weight: 800;
             text-align: center;
             margin: 0;
             color: #15616D;
         }
 
-        .section-divider {
-            border-top: 3px solid #15616D;
-            margin: 40px 0;
+        /* Subtitle styling */
+        .big-sub {
+            font-size: clamp(18px, 3vw, 28px);
+            color: #555;
+            text-align: center;
+            margin: 6px 0 18px 0;
         }
 
-        .ingredient-box {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 8px 0;
-        }
-
-        .recipe-card {
-            background: #f9f9f9;
-            border: 2px solid #15616D;
+        /* Boxed content styling - creates nice bordered sections */
+        .boxed {
+            border: 1px solid #d9d9d9;
             border-radius: 12px;
-            padding: 20px;
-            margin: 16px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 18px 20px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         /* Consistent button styling across the entire app */
@@ -106,471 +80,317 @@ st.markdown(
 )
 
 # ========================================
-# PAGE HEADER
+# HERO SECTION
 # ========================================
+# The hero section is the first thing users see - it needs to be impactful
 st.markdown(
     """
-    <div class="big-title">🥗 What's in Your Fridge?</div>
+    <div style="width: 100%;">
+        <div class="big-title">🍳 COOKABLE</div>
+    </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
+)
+
+# Add some vertical spacing
+st.write("")
+
+# ========================================
+# MAIN SLOGAN / TAGLINE WITH LOTTIE ANIMATIONS
+# ========================================
+# We use a 3-column layout with Lottie animations on both sides of the slogan
+# The Lottie files show food animations to make the page more engaging
+col1, col2, col3 = st.columns([1, 2, 1])
+
+# Left Lottie animation
+with col1:
+    st.components.v1.html(
+        """
+        <script
+          src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js"
+          type="module"
+        ></script>
+
+        <dotlottie-wc
+          src="https://lottie.host/94c71d8d-2c77-4f1b-bee6-9136b9f38ec5/1YKowIe1na.lottie"
+          style="width: 100%; height: 200px"
+          autoplay
+          loop
+        ></dotlottie-wc>
+        """,
+        height=220,
+    )
+
+# Center slogan
+with col2:
+    st.markdown(
+        """
+        <div class='boxed' style='text-align:center;'>
+            <h1 style='margin:0; font-size: 28px;'>
+                Because googling 'chicken recipe' for the 47th time is exhausting.
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# Right Lottie animation
+with col3:
+    st.components.v1.html(
+        """
+        <script
+          src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js"
+          type="module"
+        ></script>
+
+        <dotlottie-wc
+          src="https://lottie.host/94c71d8d-2c77-4f1b-bee6-9136b9f38ec5/1YKowIe1na.lottie"
+          style="width: 100%; height: 200px"
+          autoplay
+          loop
+        ></dotlottie-wc>
+        """,
+        height=220,
+    )
+
+# Horizontal divider to separate sections
+st.markdown("---")
+
+# ========================================
+# CONCEPT EXPLANATION
+# ========================================
+# This section explains what Cookable does and why it's useful
+st.write("#### 🎯 What is Cookable?")
+st.write(
+    "Cookable is your go-to AI-Fridge. It suggests recipes based on what you have in the fridge. "
+    "Stop wasting brain power on deciding what to eat every day."
 )
 
 st.write("")
-st.write("#### Select all the ingredients you currently have available:")
-st.write("Don't worry about quantities - we just need to know what you have! 🎯")
 st.write("")
 
+st.write("#### 🧠 Why Cookable?")
+st.write(
+    "An average Cookable user saves up to 700 Hz of brain power daily, "
+    "which they can direct into studying computer science instead."
+)
+
+st.markdown("---")
+
 # ========================================
-# INGREDIENT LIST WITH EMOJIS
+# CUSTOMER REVIEWS CAROUSEL
 # ========================================
-# Comprehensive list of common cooking ingredients
-# Each ingredient is paired with an appropriate emoji for visual recognition
-# Format: (ingredient_name, emoji)
-ingredients_list = [
-    ("Eggs", "🥚"),
-    ("Flour", "🌾"),
-    ("Garlic", "🧄"),
-    ("Onion", "🧅"),
-    ("Milk", "🥛"),
-    ("Tomatoes", "🍅"),
-    ("Parmesan cheese", "🧀"),
-    ("Feta cheese", "🧀"),
-    ("Mozzarella cheese", "🧀"),
-    ("Chicken", "🍗"),
-    ("Soy sauce", "🥫"),
-    ("Lemon", "🍋"),
-    ("Carrots", "🥕"),
-    ("Potatoes", "🥔"),
-    ("Bell peppers", "🫑"),
-    ("Rice", "🍚"),
-    ("Beef", "🥩"),
-    ("Pasta", "🍝"),
-    ("Heavy cream", "🥛"),
-    ("Broccoli", "🥦"),
-    ("Mushrooms", "🍄"),
-    ("Apples", "🍎"),
-    ("Spinach", "🥬"),
-    ("Banana", "🍌"),
-    ("Bacon", "🥓"),
+# This creates a horizontally scrolling carousel of customer testimonials
+# The carousel automatically animates using CSS keyframes
+st.write("##### 💬 What our users are saying:")
+
+# Define customer quotes and their authors
+quotes = [
+    ("Cookable got dinner on the table in 10 minutes.", "Justus"),
+    ("Saved me when I had no idea what to cook with what I had.", "Marie"),
+    ("Finally stopped doom‑scrolling recipes.", "Thomas"),
+    ("Takes whatever's in my fridge and makes it work.", "Erika"),
 ]
 
+# Build HTML for each quote card with modern styling
+cards_html = []
+for text, author in quotes:
+    cards_html.append(
+        f"""
+        <div class="testimonial-card">
+            <div class="quote-icon">❝</div>
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <p class="quote-text">{text}</p>
+            <div class="author-section">
+                <div class="avatar">{author[0]}</div>
+                <p class="quote-author">{author}</p>
+            </div>
+        </div>
+        """
+    )
+
+# Duplicate the cards to create seamless infinite scroll effect
+track_html = "".join(cards_html) * 2
+
+# Complete carousel HTML with modern CSS
+carousel_html = f"""
+<style>
+    .carousel-shell {{
+        overflow: hidden;
+        width: 100%;
+        padding: 32px 0;
+        background: linear-gradient(to bottom, transparent, rgba(21, 97, 109, 0.03), transparent);
+    }}
+
+    .carousel-track {{
+        display: flex;
+        gap: 24px;
+        animation: slide-left 40s linear infinite;
+    }}
+
+    .carousel-track:hover {{
+        animation-play-state: paused;
+    }}
+
+    .testimonial-card {{
+        flex: 0 0 380px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8feff 100%);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 8px 24px rgba(21, 97, 109, 0.12);
+        border: 1px solid rgba(21, 97, 109, 0.1);
+        position: relative;
+        transition: all 0.3s ease;
+    }}
+
+    .testimonial-card:hover {{
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(21, 97, 109, 0.18);
+        border-color: rgba(21, 97, 109, 0.2);
+    }}
+
+    .quote-icon {{
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        font-size: 48px;
+        color: rgba(21, 97, 109, 0.1);
+        font-family: Georgia, serif;
+        line-height: 1;
+    }}
+
+    .stars {{
+        font-size: 18px;
+        margin-bottom: 12px;
+        letter-spacing: 2px;
+    }}
+
+    .quote-text {{
+        font-size: 17px;
+        line-height: 1.7;
+        color: #333;
+        margin: 16px 0 20px 0;
+        font-style: italic;
+        min-height: 80px;
+    }}
+
+    .author-section {{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid rgba(21, 97, 109, 0.1);
+    }}
+
+    .avatar {{
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #15616D 0%, #1a7785 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(21, 97, 109, 0.2);
+    }}
+
+    .quote-author {{
+        font-weight: 700;
+        color: #15616D;
+        font-size: 16px;
+        margin: 0;
+    }}
+
+    /* Keyframe animation for sliding effect */
+    @keyframes slide-left {{
+        from {{ transform: translateX(0); }}
+        to {{ transform: translateX(-50%); }}
+    }}
+
+    /* Responsive design for smaller screens */
+    @media (max-width: 720px) {{
+        .testimonial-card {{
+            flex-basis: 320px;
+            padding: 24px;
+        }}
+
+        .quote-text {{
+            font-size: 16px;
+            min-height: 70px;
+        }}
+    }}
+</style>
+<div class="carousel-shell">
+    <div class="carousel-track">
+        {track_html}
+    </div>
+</div>
+"""
+
+# Render the carousel using Streamlit's HTML component
+st.components.v1.html(carousel_html, height=360, scrolling=False)
+
+st.markdown("---")
+
 # ========================================
-# SESSION STATE INITIALIZATION
+# CALL TO ACTION
 # ========================================
-# Initialize session state for storing selected ingredients and search trigger
-if "selected_ingredients" not in st.session_state:
-    st.session_state.selected_ingredients = []
-
-if "show_results" not in st.session_state:
-    st.session_state.show_results = False
-
-# ========================================
-# INGREDIENT SELECTION UI
-# ========================================
-st.write("---")
-
-# Create a container for better organization
-with st.container():
-    # We'll display checkboxes in 3 columns for better space utilization
-    col1, col2, col3 = st.columns(3)
-
-    # Divide ingredients into 3 groups for the 3 columns
-    total_ingredients = len(ingredients_list)
-    per_column = (total_ingredients + 2) // 3  # Divide evenly with rounding up
-
-    # Track which ingredients are selected
-    selected = []
-
-    # Column 1
-    with col1:
-        for i in range(0, per_column):
-            if i < len(ingredients_list):
-                ingredient, emoji = ingredients_list[i]
-                if st.checkbox(f"{emoji} {ingredient}", key=f"ing_{i}"):
-                    selected.append(ingredient)
-
-    # Column 2
-    with col2:
-        for i in range(per_column, per_column * 2):
-            if i < len(ingredients_list):
-                ingredient, emoji = ingredients_list[i]
-                if st.checkbox(f"{emoji} {ingredient}", key=f"ing_{i}"):
-                    selected.append(ingredient)
-
-    # Column 3
-    with col3:
-        for i in range(per_column * 2, total_ingredients):
-            if i < len(ingredients_list):
-                ingredient, emoji = ingredients_list[i]
-                if st.checkbox(f"{emoji} {ingredient}", key=f"ing_{i}"):
-                    selected.append(ingredient)
-
-st.write("---")
-
-# ========================================
-# SELECTED INGREDIENTS SUMMARY
-# ========================================
-st.write("### 📋 Your Selected Ingredients:")
-
-if selected:
-    # Update session state with current selection
-    st.session_state.selected_ingredients = selected
-
-    # Display in a nice formatted way
-    st.success(f"✅ You have selected **{len(selected)}** ingredient(s):")
-    st.write(", ".join(selected))
-else:
-    # No ingredients selected yet
-    st.info("👆 Check the boxes above to select your ingredients")
-    st.session_state.selected_ingredients = []
+# This button encourages users to start using the app
+#
+# Technical Note:
+# ---------------
+# We use Streamlit's native navigation with custom CSS for beautiful styling
+st.write("### 🚀 Ready to find your next meal?")
+st.write("Select the ingredients you have, and let our AI recommend the perfect recipes for you!")
 
 st.write("")
 
-# ========================================
-# FIND RECIPES BUTTON
-# ========================================
-st.write("### 🎯 Ready to find recipes?")
+# Create centered button layout
+# Button styling is already applied globally at the top of the page
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    # Use Streamlit's native button with custom styling
+    if st.button("🥘 Start Cooking", use_container_width=True):
+        st.switch_page("pages/2_🥗_Recipe_Finder.py")
 
-if len(selected) > 0:
-    st.write(f"Great! We'll find the best recipes based on your {len(selected)} ingredient(s).")
-
-    # Create a centered button
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # Use Streamlit button which properly handles session state
-        if st.button("🔍 Find My Recipes", use_container_width=True):
-            # Set flag to show results below
-            st.session_state.show_results = True
-            # Force a rerun to display results
-            st.rerun()
-else:
-    st.warning("⚠️ Please select at least one ingredient to continue")
-    st.session_state.show_results = False
+st.markdown("---")
 
 # ========================================
-# HELPFUL TIPS SECTION
+# ABOUT SECTION
 # ========================================
-st.write("---")
-st.write("### 💡 Tips:")
-st.write("- **Salt, pepper, oil, and butter** are assumed to be available in unlimited amounts")
-st.write("- We don't worry about exact quantities - just what you have!")
-st.write("- Select all ingredients you have available, even if you're not sure you'll use them")
-st.write("- If a recipe needs 1-2 extra ingredients, we'll let you know (time to visit your neighbor! 😉)")
-
-# ========================================
-# RECIPE RESULTS SECTION
-# ========================================
-# This section only appears after the user clicks "Find My Recipes"
-
-if st.session_state.show_results and len(st.session_state.selected_ingredients) > 0:
-
-    # Visual divider
-    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-
-    # ========================================
-    # RESULTS HEADER
-    # ========================================
-    st.markdown(
-        """
-        <div class="big-title">🍽️ Your Perfect Recipes</div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.write("")
-
-    user_ingredients = st.session_state.selected_ingredients
-    st.success(f"✅ Searching with **{len(user_ingredients)}** ingredient(s)")
-    st.write("**Your ingredients:**", ", ".join(user_ingredients))
-    st.write("---")
-
-    # ========================================
-    # LOAD DATA AND INITIALIZE MODELS
-    # ========================================
-
-    @st.cache_resource
-    def initialize_models():
-        """
-        Initialize the clustering model and recipe matcher.
-
-        Technical Note:
-        -----------------
-        We use @st.cache_resource decorator to cache this function.
-        This means the models are loaded only ONCE and reused for all users.
-        This improves performance and saves computation time!
-
-        Returns:
-        --------
-        tuple
-            (clusterer, recipes_df) or (None, None) if error
-        """
-        try:
-            # Get the path to the CSV file
-            csv_path = os.path.join('data', 'sample_recipes.csv')
-
-            # If file doesn't exist, try absolute path
-            if not os.path.exists(csv_path):
-                csv_path = os.path.join(
-                    os.getcwd(),
-                    'data',
-                    'sample_recipes.csv'
-                )
-
-            # Load and train the clustering model
-            print("Loading clustering model...")
-            clusterer = load_clusterer(csv_path, n_clusters=5)
-
-            if clusterer is None:
-                return None, None
-
-            # Get the recipes DataFrame with cluster assignments
-            recipes_df = clusterer.recipes_df
-
-            print(f"✅ Models initialized successfully!")
-            return clusterer, recipes_df
-
-        except Exception as e:
-            print(f"❌ Error initializing models: {e}")
-            return None, None
-
-    # Show loading message while models initialize
-    with st.spinner("🔄 Loading recipe database and AI models..."):
-        clusterer, recipes_df = initialize_models()
-
-    # Check if models loaded successfully
-    if clusterer is None or recipes_df is None:
-        st.error("❌ Error loading recipe database. Please check the data file.")
-    else:
-        # ========================================
-        # FIND MATCHING RECIPES
-        # ========================================
-
-        st.write("### 🔍 Finding Your Perfect Recipes...")
-
-        # Create the recipe matcher with our clusterer
-        matcher = create_matcher(recipes_df, clusterer)
-
-        # Find matching recipes
-        # Allow up to 2 missing ingredients, return top 5 recipes
-        matching_recipes = matcher.find_matching_recipes(
-            user_ingredients=user_ingredients,
-            max_missing=2,
-            top_n=5
-        )
-
-        st.write("---")
-
-        # ========================================
-        # DISPLAY RESULTS
-        # ========================================
-
-        if len(matching_recipes) == 0:
-            # No recipes found
-            st.warning("😕 We couldn't find any recipes matching your ingredients.")
-            st.write("Try adding more ingredients or removing some restrictions.")
-
-        else:
-            # Recipes found!
-            st.write(f"### 🎉 We Found {len(matching_recipes)} Amazing Recipes for You!")
-            st.write("")
-
-            # Display each recipe in an expandable card
-            for idx, recipe in enumerate(matching_recipes, 1):
-                # Recipe header with rank
-                st.markdown(f"### {idx}. {recipe['recipe_name']}")
-
-                # Create columns for recipe info
-                col1, col2, col3, col4 = st.columns(4)
-
-                with col1:
-                    st.metric("⭐ Rating", f"{recipe['rating']}/5")
-
-                with col2:
-                    st.metric("⏱️ Time", f"{recipe['cooking_time']} min")
-
-                with col3:
-                    st.metric("✅ Match", f"{recipe['num_matching']} ing.")
-
-                with col4:
-                    difficulty_emoji = {"easy": "😊", "medium": "😐", "hard": "😰"}
-                    emoji = difficulty_emoji.get(recipe['difficulty'].lower(), "😊")
-                    st.metric("🎯 Difficulty", f"{emoji} {recipe['difficulty'].title()}")
-
-                # Show match score with color coding
-                score_color = "#4CAF50" if recipe['final_score'] > 0.7 else "#FF9800"
-                st.markdown(
-                    f"<div style='background: {score_color}; color: white; padding: 8px; "
-                    f"border-radius: 6px; text-align: center; font-weight: 600; margin: 8px 0;'>"
-                    f"Match Score: {recipe['final_score']:.1%} | "
-                    f"Base Score: {recipe['base_score']:.1%} | "
-                    f"ML Boost: {recipe['cluster_boost']:.1%}"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-
-                # Show missing ingredients if any
-                if recipe['num_missing'] > 0:
-                    missing = recipe['missing_ingredients']
-                    st.warning(
-                        f"⚠️ Missing {recipe['num_missing']} ingredient(s): "
-                        f"**{', '.join(missing)}**\n\n"
-                        f"💡 Time to visit your neighbor! 😉"
-                    )
-
-                # Expandable section for full recipe details
-                with st.expander(f"📖 View Full Recipe: {recipe['recipe_name']}"):
-                    st.write("#### Ingredients Needed:")
-                    st.write("")
-
-                    # Show all ingredients with checkmarks for what user has
-                    for ingredient in recipe['all_ingredients']:
-                        if ingredient in recipe['matching_ingredients']:
-                            st.write(f"✅ {ingredient} *(you have this)*")
-                        else:
-                            st.write(f"❌ {ingredient} *(need to get this)*")
-
-                    st.write("")
-                    st.write("#### Instructions:")
-                    st.write(recipe['instructions'])
-
-                    st.write("")
-                    st.write("#### Recipe Metadata:")
-                    st.write(f"- **Cooking Time:** {recipe['cooking_time']} minutes")
-                    st.write(f"- **Difficulty:** {recipe['difficulty'].title()}")
-                    st.write(f"- **Rating:** {recipe['rating']}/5 stars")
-                    if recipe['cluster_id'] is not None:
-                        st.write(f"- **Recipe Cluster:** {recipe['cluster_id']} (similar recipes grouped by AI)")
-
-                st.write("---")
-
-        # ========================================
-        # EDUCATIONAL SECTION: HOW IT WORKS
-        # ========================================
-        st.write("### 🎓 How Does This Work?")
-
-        with st.expander("📚 Learn About Our Algorithm"):
-            st.write("#### The Cookable Recipe Matching Algorithm")
-            st.write("")
-
-            st.write("""
-            Our recommendation system combines **rule-based filtering** with **machine learning** to find the best recipes for you.
-            Here's how it works step by step:
-            """)
-
-            st.write("#### Step 1: Filtering 🔍")
-            st.write("""
-            - We first filter recipes that you can **actually make** with your ingredients
-            - We allow up to **2 missing ingredients** (you can borrow from a neighbor!)
-            - We assume **salt, pepper, oil, and butter** are always available
-            """)
-
-            st.write("#### Step 2: Base Scoring 📊")
-            st.write("""
-            For each feasible recipe, we calculate a base score using:
-
-            1. **Ingredient Match Ratio (40% weight)**
-               - What percentage of the recipe's ingredients do you have?
-               - Higher is better!
-
-            2. **Missing Ingredient Penalty (30% weight)**
-               - Fewer missing ingredients = higher score
-               - 0 missing → full score, 1-2 missing → reduced score
-
-            3. **Cooking Time Factor (10% weight)**
-               - Shorter cooking time = small bonus
-               - Busy people want quick meals!
-
-            4. **Recipe Rating (20% weight)**
-               - Higher rated recipes get a boost
-               - Quality matters!
-            """)
-
-            st.write("#### Step 3: Machine Learning Boost 🤖")
-            st.write("""
-            We use **K-Means clustering** (unsupervised machine learning) to group similar recipes together.
-
-            - Recipes are grouped into **5 clusters** based on their ingredients
-            - Each cluster gets a **popularity score** (average rating of all recipes in that cluster)
-            - Recipes in popular clusters get a **bonus boost**
-
-            **Why clustering helps:**
-            - If you like pasta dishes, we recommend other pasta dishes from the same cluster
-            - Popular recipe types get prioritized
-            - This improves user satisfaction!
-            """)
-
-            st.write("#### Step 4: Final Score 🎯")
-            st.write("""
-            We combine everything into a final score:
-
-            ```
-            Final Score = 0.6 × Base Score + 0.4 × ML Boost
-
-            where:
-            ML Boost = 0.2 × Recipe Rating + 0.2 × Cluster Popularity
-            ```
-
-            The recipes are then **ranked by final score**, and the top 5 are shown to you!
-            """)
-
-            st.write("")
-            st.info("""
-            💡 **Pro Tip:**
-
-            This is a powerful recommendation system used in production!
-            Real-world systems (like Netflix, Spotify) use more complex algorithms,
-            but the core principles are the same:
-            - Filtering
-            - Scoring multiple factors
-            - Combining with ML
-            - Ranking results
-            """)
-
-        # ========================================
-        # CLUSTERING INSIGHTS
-        # ========================================
-        st.write("### 🔬 Recipe Clustering Insights")
-
-        with st.expander("🤖 View Clustering Analysis"):
-            st.write("""
-            Our AI has automatically grouped all recipes into **5 clusters** based on their ingredients.
-            Recipes in the same cluster have similar ingredients and cooking styles.
-            """)
-
-            st.write("")
-            st.write("#### Cluster Summary:")
-
-            # Get cluster summary from clusterer
-            cluster_summary = clusterer.get_cluster_summary()
-
-            for cluster_id, info in cluster_summary.items():
-                st.write(f"**Cluster {cluster_id}:**")
-                st.write(f"- Number of recipes: {info['num_recipes']}")
-                st.write(f"- Average rating: {info['avg_rating']:.2f}/5")
-                st.write(f"- Popularity score: {info['popularity_score']:.2%}")
-                st.write(f"- Example recipes: {', '.join(info['example_recipes'][:2])}")
-                st.write("")
-
-            st.write("")
-            st.info("""
-            💡 **How to read this:**
-            - Higher **popularity score** means the cluster contains highly-rated recipes
-            - Recipes in popular clusters get a **small boost** in recommendations
-            - This helps us recommend tried-and-true recipe styles!
-            """)
-
-    # ========================================
-    # MODIFY SEARCH SECTION
-    # ========================================
-    st.write("---")
-    st.write("### 🔄 Want to try different ingredients?")
-    st.write("Simply change your ingredient selections above and click 'Find My Recipes' again!")
-
-    # Button to scroll back to top
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🏠 Back to Home", use_container_width=True):
-            st.switch_page("1_🏠_Home.py")
+# The story behind Cookable - makes it more personal and engaging
+st.write("##### 📖 About Cookable")
+st.write("")
+
+st.write(
+    "Cookable was born from a simple observation: people waste too much time deciding what to cook. "
+    "What started as a practical idea quickly turned into an obsession. The original goal was modest: "
+    "build a smart app that helps people discover what they can cook based on the ingredients they already have. "
+    "But somewhere between the first prototype and the tenth bug that refused to die, the idea took on a life of its own."
+)
+
+st.write("")
+
+st.write(
+    "Several weeks of intense development followed. There were moments of triumph when a feature finally worked, "
+    "and moments of challenge when nothing made sense at 3 a.m. The problem Cookable was trying to solve felt "
+    "too real to ignore: people wasting time and mental energy simply because they didn't know what they could "
+    "cook with what they had. Every iteration made the app smarter, faster, and more useful."
+)
+
+st.write("")
+
+st.write(
+    "What began as a simple idea slowly transformed into a real product with real users and real impact. "
+    "Today, Cookable stands as a reminder that some of the best solutions don't begin with grand ambition—"
+    "but with an empty fridge, a busy person, and a simple question: What can I cook right now?"
+)
+
+st.write("")
+st.write("**Meet the team** 👨‍💻👩‍💻")
 
 # Footer
 st.markdown("---")
@@ -580,3 +400,4 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True
 )
+
